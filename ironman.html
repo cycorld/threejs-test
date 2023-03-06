@@ -1,0 +1,129 @@
+<html>
+  <body></body>
+</html>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.150.1/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r129/examples/js/loaders/OBJLoader.js"></script>
+<script>
+  // create a scene, camera, and renderer
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  var renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // create a loader for the OBJ file
+  var loader = new THREE.OBJLoader();
+
+  // create a variable to store the loaded object
+  var object;
+
+  // load the OBJ file and add it to the scene
+  loader.load(
+    // path to the OBJ file
+    "IronMan.obj",
+    // function called when loading is complete
+    function (loadedObject) {
+      // set initial position and rotation of the character
+      loadedObject.position.set(0, 0, -5);
+      loadedObject.rotation.y = Math.PI;
+
+      // scale down the object
+      loadedObject.scale.set(0.01, 0.01, 0.01);
+      // assign the loaded object to the global variable
+      object = loadedObject;
+
+      // add the object to the scene
+      scene.add(object);
+    },
+    // function called when loading is in progress
+    function (xhr) {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+    },
+    // function called when loading encounters an error
+    function (error) {
+      console.log("An error occurred while loading the OBJ file");
+      console.log(error);
+    }
+  );
+
+  // create variables for movement
+  var moveForward = false;
+  var moveBackward = false;
+  var moveLeft = false;
+  var moveRight = false;
+
+  // add event listeners for arrow key presses
+  document.addEventListener("keydown", function (event) {
+    switch (event.keyCode) {
+      case 38: // up arrow
+        moveForward = true;
+        break;
+      case 40: // down arrow
+        moveBackward = true;
+        break;
+      case 37: // left arrow
+        moveLeft = true;
+        break;
+      case 39: // right arrow
+        moveRight = true;
+        break;
+    }
+  });
+
+  document.addEventListener("keyup", function (event) {
+    switch (event.keyCode) {
+      case 38: // up arrow
+        moveForward = false;
+        break;
+      case 40: // down arrow
+        moveBackward = false;
+        break;
+      case 37: // left arrow
+        moveLeft = false;
+        break;
+      case 39: // right arrow
+        moveRight = false;
+        break;
+    }
+  });
+
+  // create a directional light and add it to the scene
+  var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(0, 1, 0);
+  scene.add(directionalLight);
+
+  // set the camera position and orientation to look at the loaded object
+  camera.position.set(0, 0, 5);
+  camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+  // create a loop to update the character's position and rotation
+  var animate = function () {
+    requestAnimationFrame(animate);
+
+    // check if the object variable has been defined
+    if (object) {
+      // update position and rotation based on movement variables
+      if (moveForward) {
+        object.translateZ(-0.1);
+      }
+      if (moveBackward) {
+        object.translateZ(0.1);
+      }
+      if (moveLeft) {
+        object.rotateY(0.03);
+      }
+      if (moveRight) {
+        object.rotateY(-0.03);
+      }
+    }
+
+    renderer.render(scene, camera);
+  };
+
+  animate();
+</script>

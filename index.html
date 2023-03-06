@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Three.js FBXLoader Example</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="
+https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js
+"></script>
+    <script>
+      var scene = new THREE.Scene();
+
+      // create a perspective camera with a FOV of 75 degrees
+      var camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(0, 100, -20);
+      scene.add(camera);
+
+      var renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      var object;
+
+      var mixer; // define the mixer variable at a higher scope
+
+      var loader = new THREE.FBXLoader();
+      loader.load(
+        // path to the FBX file
+        "./walking.fbx",
+        // function called when loading is complete
+        function (loadedObject) {
+          // set initial position and rotation of the character
+          loadedObject.position.set(0, 0, -5);
+          loadedObject.rotation.y = Math.PI;
+
+          // assign the loaded object to the global variable
+          object = loadedObject;
+
+          // add the object to the scene
+          scene.add(object);
+
+          // create a mixer to play the animation
+          mixer = new THREE.AnimationMixer(object);
+
+          // get the animation clip from the object
+          var clip = object.animations[0];
+
+          // create an action to play the animation
+          var action = mixer.clipAction(clip);
+
+          // play the animation
+          action.play();
+        },
+        // function called when loading is in progress
+        function (xhr) {
+          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        },
+        // function called when loading encounters an error
+        function (error) {
+          console.log("An error occurred while loading the FBX file");
+          console.log(error);
+        }
+      );
+
+      var ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+      scene.add(ambientLight);
+
+      var directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+
+      var mouse = new THREE.Vector2();
+      var moveForward = false;
+      var moveBackward = false;
+      var moveLeft = false;
+      var moveRight = false;
+
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+
+      function onKeyDown(event) {
+        switch (event.code) {
+          case "ArrowUp":
+          case "KeyW":
+            moveForward = true;
+            break;
+          case "ArrowLeft":
+          case "KeyA":
+            moveLeft = true;
+            break;
+          case "ArrowDown":
+          case "KeyS":
+            moveBackward = true;
+            break;
+          case "ArrowRight":
+          case "KeyD":
+            moveRight = true;
+            break;
+        }
+      }
+
+      function onKeyUp(event) {
+        switch (event.code) {
+          case "ArrowUp":
+          case "KeyW":
+            moveForward = false;
+            break;
+          case "ArrowLeft":
+          case "KeyA":
+            moveLeft = false;
+            break;
+          case "ArrowDown":
+          case "KeyS":
+            moveBackward = false;
+            break;
+          case "ArrowRight":
+          case "KeyD":
+            moveRight = false;
+            break;
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // rotate the character based on the mouse position
+        if (object) {
+          object.rotation.y += mouse.x * 0.01;
+        }
+
+        // move the character based on the keyboard input
+        var speed = 0.1;
+        if (moveForward) {
+          object.translateZ(-speed);
+        }
+        if (moveBackward) {
+          object.translateZ(speed);
+        }
+        if (moveLeft) {
+          object.translateX(-speed);
+        }
+        if (moveRight) {
+          object.translateX(speed);
+        }
+
+        // update the animation mixer
+        if (mixer) {
+          mixer.update(0.01);
+        }
+
+        // render the scene
+        renderer.render(scene, camera);
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("keydown", onKeyDown);
+      document.addEventListener("keyup", onKeyUp);
+
+      animate();
+    </script>
+  </body>
+</html>
